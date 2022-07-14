@@ -34,8 +34,7 @@ while not done:
 
 env.plot_partition() #saves a plot of the optimal policy
 ```
-![alt text](https://https://github.com/KohlerHECTOR/gym-decision-trees/images/optim_tree_4_page-0001.jpg?raw=true)
-
+![image](/images/optim_tree_4_page-0001.jpg)
 # TODO
 
 Add rendering.
