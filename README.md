@@ -13,7 +13,7 @@ user@user:~$ cd directory
 user@user:~/directory$ git clone https://github.com/KohlerHECTOR/gym-decision-trees.git
 user@user:~/directory/rl-library$ cd rl-library
 user@user:~/directory/rl-library$ source virtual_env/bin/activate
-user@user:~/directory/rl-library$ pip install -e ../gym-decision-trees
+user@user:~/directory/rl-library$ pip install -e ../gym-decision-trees/
 ```
 
 # Run.
