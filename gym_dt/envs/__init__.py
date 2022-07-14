@@ -1,1 +1,1 @@
-from mdp_dt_env.py import DecisionTreeEnv
+from gym_dt.envs.mdp_dt_env import DecisionTreeEnv
