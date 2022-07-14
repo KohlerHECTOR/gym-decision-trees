@@ -34,7 +34,7 @@ while not done:
 
 env.plot_partition() #saves a plot of the optimal policy
 ```
-![image](/images/optim_tree_4_page-0001.jpg)
+
 # TODO
 
 Add rendering.
