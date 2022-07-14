@@ -4,11 +4,16 @@ import matplotlib.pyplot as plt
 
 
 def cartesian_prod(x, y):
+    '''
+    Cartesian product between two sets of same length x,y.
+    '''
     return np.transpose([np.tile(x, len(y)), np.repeat(y, len(x))])
 
 
 def recursive_2D_dt_partition(domains, depth, opt_tree_depth, all_p, nb_actions):
-    # global PARTITION
+    '''
+    Generates a random decision tree over a 2d-state-N-action space.
+    '''
     if depth == opt_tree_depth:
         a = np.random.randint(nb_actions)
         return ActionNode(a)
@@ -100,11 +105,24 @@ class ActionNode:
 
 
 class DecisionTreeEnv(gym.Env):
+    '''
+    Simple continuous 2-d states mdp with discrete cardinal actions for which
+    the optimal policy is a decision tree of given depth.
+
+    In s_t, the reward is 1 for performing the action opt_pol(s_t) and 0 o.w. .
+    The maximum steps per episode is 500.
+    The maximum cumulated reward is thus 500.
+    '''
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
     # to generalize in N dimensions
     def __init__(self, opt_tree_depth=2, p=1, step_size=1e-2):
-        self.window_size = 512
+        '''
+        opt_tree_depth: int, the max depth of the optimal decision tree policy.
+        p: int, where to split domains. If p=1, domains are partitioned in their centers.
+        (see: https://arxiv.org/abs/2102.13045 )
+        step_size: float, the size of a step in the state state space.
+        '''
         self.observation_space = gym.spaces.Box(
             np.array([0, 0]), np.array([1, 1]), dtype=np.float32
         )
