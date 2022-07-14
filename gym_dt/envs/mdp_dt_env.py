@@ -103,12 +103,12 @@ class DecisionTreeEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
     #to generalize in N dimensions
-    def __init__(self, opt_tree_depth = 2, nb_actions = 4, p = 1):
+    def __init__(self, opt_tree_depth = 2, p = 1, step_size = 1e-2):
         self.window_size = 512
         self.observation_space = gym.spaces.Box(np.array([0,0]),np.array([1,1]), dtype=np.float32)
-        self.action_space = gym.spaces.Discrete(nb_actions)
+        self.action_space = gym.spaces.Discrete(4)
 
-        self.action_map = [[0,0.01],[0.01,0],[-0.01,0],[0,-0.01]]
+        self.action_map = [[0,step_size],[step_size,0],[-step_size,0],[0,-step_size]]
 
         self.opt_tree_depth = opt_tree_depth
         self.p = p
