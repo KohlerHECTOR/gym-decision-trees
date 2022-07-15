@@ -32,7 +32,7 @@ done = False
 while not done:
   s,r,done,info = env.step(env.action_space.sample())
 
-env.plot_partition() #saves a plot of the optimal policy
+env.plot_policy() #saves a plot of the optimal policy
 ```
 
 # TODO

@@ -1,187 +1,216 @@
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Union
 
-
-def cartesian_prod(x, y):
-    '''
-    Cartesian product between two sets of same length x,y.
-    '''
-    return np.transpose([np.tile(x, len(y)), np.repeat(y, len(x))])
-
-
-def recursive_2D_dt_partition(domains, depth, opt_tree_depth, all_p, nb_actions):
-    '''
-    Generates a random decision tree over a 2d-state-N-action space.
-    '''
-    if depth == opt_tree_depth:
-        a = np.random.randint(nb_actions)
-        return ActionNode(a)
-    else:
-        random_dim = np.random.randint(2)
-        true_vals = (
-            all_p * (domains[random_dim][1] - domains[random_dim][0])
-            + domains[random_dim][0]
-        )
-        random_val = np.random.choice(true_vals)
-        left = domains.copy()
-        right = domains.copy()
-        left[random_dim] = [domains[random_dim][0], random_val]
-        right[random_dim] = [random_val, domains[random_dim][1]]
-        depth += 1
-        # left_right = np.random.randint(2)
-        child_left = recursive_2D_dt_partition(
-            left, depth, opt_tree_depth, all_p, nb_actions
-        )
-        child_right = recursive_2D_dt_partition(
-            right, depth, opt_tree_depth, all_p, nb_actions
-        )
-
-        return InfoNode(random_dim, random_val, child_left, child_right)
-        # return {"left": child_left, "right": child_right}
-
-
-def partition(obs_step, opt_tree_depth, p, all_p, nb_actions):
-    PARTITION = np.zeros(
-        (
-            len(np.linspace(0, 1, (p + 1) ** (opt_tree_depth) + 1)[:-1]),
-            len(np.linspace(0, 1, (p + 1) ** (opt_tree_depth) + 1)[:-1]),
-        )
-    )
-    tree = recursive_2D_dt_partition(
-        [[0, 1], [0, 1]],
-        depth=0,
-        opt_tree_depth=opt_tree_depth,
-        all_p=all_p,
-        nb_actions=nb_actions,
-    )
-    for x in range(len(PARTITION)):
-        for y in range(len(PARTITION)):
-            PARTITION[x][len(PARTITION) - 1 - y] = traverse_tree_build(
-                [x * obs_step, y * obs_step], tree
-            )
-    return PARTITION.T, tree
+array = Union[list, np.array]
 
 
 def traverse_tree(cell, tree):
-    if isinstance(tree, ActionNode):
-        return tree.action
-    elif isinstance(tree, InfoNode):
-        feature = tree.feature
-        val = tree.value
-        if cell[feature] <= val:
-            subtree = tree.left
+	if isinstance(tree, ActionNode):
+		return tree.action
+	elif isinstance(tree, InfoNode):
+		feature = tree.feature
+		val = tree.value
+		if cell[feature] <= val:
+			subtree = tree.left
 
-        else:
-            subtree = tree.right
-        return traverse_tree(cell, subtree)
+		else:
+			subtree = tree.right
+		return traverse_tree(cell, subtree)
 
 
 def traverse_tree_build(cell, tree):
-    if isinstance(tree, ActionNode):
-        return tree.action
-    elif isinstance(tree, InfoNode):
-        feature = tree.feature
-        val = tree.value
-        if cell[feature] < val:
-            subtree = tree.left
+	if isinstance(tree, ActionNode):
+		return tree.action
+	elif isinstance(tree, InfoNode):
+		feature = tree.feature
+		val = tree.value
+		if cell[feature] < val:
+			subtree = tree.left
 
-        else:
-            subtree = tree.right
-        return traverse_tree_build(cell, subtree)
+		else:
+			subtree = tree.right
+		return traverse_tree_build(cell, subtree)
 
-
-class InfoNode:
-    def __init__(self, feature, value, left, right):
-        self.feature = feature
-        self.value = value
-        self.left = left
-        self.right = right
 
 
 class ActionNode:
-    def __init__(self, action):
-        self.action = action
+	"""
+	Generic class for a leaf node of a binary tree.
+	"""
+
+	def __init__(self, action: int):
+		self.action = action
+
+class InfoNode:
+	"""
+	Generic class for an internal node of binary tree.
+	"""
+
+	def __init__(self, feature: int, value: float, left, right):
+		self.feature = feature
+		self.value = value
+		self.left = left
+		self.right = right
+
+
+class DecisionTreePolicy:
+	"""
+	Generic Decision Tree Policy class (binary).
+	Builds a given depth random binary decision tree over a 2d-state-N-action space.
+
+	:param p: Where to split domains. If p=1, domains are partitioned in their centers.
+	(see: https://arxiv.org/abs/2102.13045 )
+	:param opt_tree_depth: Target tree depth for the final binary decision tree.
+	:param all_p: Values in [0,1] indicating where a subspace can be split along a given dimension.
+	:param nb_actions: Number of actions possible for decision (leaf) nodes values.
+	"""
+
+	def __init__(self, opt_tree_depth: int, p: int, all_p: array, nb_actions: int):
+
+		self.opt_tree_depth = opt_tree_depth
+		self.p = p
+		self.all_p = all_p
+		self.nb_actions = nb_actions
+
+		self.tree = self.recursive_2D_dt_partition(
+			domains=[[0, 1], [0, 1]],
+			depth=0,
+		)
+
+	def recursive_2D_dt_partition(
+		self,
+		domains: list,
+		depth: int,
+	):
+		"""
+		Recursively generates a random binary decision tree over a 2d-state-N-action space.
+		:param domains: A closed subspace of |R^2.
+		:param depth: Current number of internal nodes traversed to reach the subspace domains.
+		"""
+		if depth == self.opt_tree_depth:
+			a = np.random.randint(self.nb_actions)
+			return ActionNode(a)
+		else:
+			random_dim = np.random.randint(2)
+			true_vals = (
+				self.all_p * (domains[random_dim][1] - domains[random_dim][0])
+				+ domains[random_dim][0]
+			)
+			random_val = np.random.choice(true_vals)
+			left = domains.copy()
+			right = domains.copy()
+			left[random_dim] = [domains[random_dim][0], random_val]
+			right[random_dim] = [random_val, domains[random_dim][1]]
+			depth += 1
+			child_left = self.recursive_2D_dt_partition(
+				left, depth
+			)
+			child_right = self.recursive_2D_dt_partition(
+				right, depth
+			)
+
+			return InfoNode(random_dim, random_val, child_left, child_right)
+
+	def pol(self, state: array):
+		return traverse_tree(state, self.tree)
 
 
 class DecisionTreeEnv(gym.Env):
-    '''
-    Simple continuous 2-d states mdp with discrete cardinal actions for which
-    the optimal policy is a decision tree of given depth.
+	"""
+	Simple continuous 2-d states mdp with discrete cardinal actions for which
+	the optimal policy is a decision tree of given depth.
 
-    In s_t, the reward is 1 for performing the action opt_pol(s_t) and 0 o.w. .
-    The maximum steps per episode is 500.
-    The maximum cumulated reward is thus 500.
-    '''
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
+	In s_t, the reward is 1 for performing the action opt_pol(s_t) and 0 o.w. .
+	The maximum steps per episode is 500.
+	The maximum cumulated reward is thus 500.
+	:param opt_tree_depth: The max depth of the optimal decision tree policy.
+	:param p: Where to split domains. If p=1, domains are partitioned in their centers.
+	(see: https://arxiv.org/abs/2102.13045 )
+	:param step_size: The size of a step in the state state space.
+	"""
 
-    # to generalize in N dimensions
-    def __init__(self, opt_tree_depth=2, p=1, step_size=1e-2):
-        '''
-        opt_tree_depth: int, the max depth of the optimal decision tree policy.
-        p: int, where to split domains. If p=1, domains are partitioned in their centers.
-        (see: https://arxiv.org/abs/2102.13045 )
-        step_size: float, the size of a step in the state state space.
-        '''
-        self.observation_space = gym.spaces.Box(
-            np.array([0, 0]), np.array([1, 1]), dtype=np.float32
-        )
-        self.action_space = gym.spaces.Discrete(4)
+	# to generalize in N dimensions
+	def __init__(
+		self,
+		opt_tree_depth: int = 2,
+		p: int = 1,
+		step_size: float = 1e-2):
 
-        self.action_map = [
-            [0, step_size],
-            [step_size, 0],
-            [-step_size, 0],
-            [0, -step_size],
-        ]
+		self.observation_space = gym.spaces.Box(
+			np.array([0, 0]), np.array([1, 1]), dtype=np.float32
+		)
+		self.action_space = gym.spaces.Discrete(4)
 
-        self.opt_tree_depth = opt_tree_depth
-        self.p = p
-        self.obs_step = (1 / (self.p + 1)) ** self.opt_tree_depth
-        self.all_p = np.linspace(0, 1, p + 2)[1:-1]
+		self.action_map = [
+			[0, step_size],
+			[step_size, 0],
+			[-step_size, 0],
+			[0, -step_size],
+		]
 
-        self.init_random_partition()
+		self.opt_tree_depth = opt_tree_depth
+		self.p = p
+		self.obs_step = (1 / (self.p + 1)) ** self.opt_tree_depth
+		self.all_p = np.linspace(0, 1, p + 2)[1:-1]
 
-        self.state = self.observation_space.sample()
+		self.dtp = self.get_random_dtp()
 
-    def init_random_partition(self):
-        self.rnd_partition, self.dt = partition(
-            self.obs_step, self.opt_tree_depth, self.p, self.all_p, self.action_space.n
-        )
+		self.state = self.observation_space.sample()
 
-    def plot_partition(self):
-        self.fig = plt.pcolormesh(
-            np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1),
-            np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1),
-            self.rnd_partition,
-            cmap="Blues",
-        )
-        plt.savefig("optim_tree_" + str(self.opt_tree_depth) + ".pdf")
+	def get_random_dtp(self):
+		dtp = DecisionTreePolicy(
+			self.opt_tree_depth, self.p, self.all_p, self.action_space.n
+		)
+		return dtp
 
-    def reset(self, seed=None, return_info=False, options=None):
-        self.state = self.observation_space.sample()
-        return self.state
+	def get_opt_state_action_space_from_dtp(self):
+		sa_space = np.zeros((
+			len(np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1)[:-1]),
+			len(np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1)[:-1]),
+		))
+		for x in range(len(sa_space)):
+			for y in range(len(sa_space)):
+				sa_space[x][len(sa_space) - 1 - y] = traverse_tree_build(
+					[x * self.obs_step, y * self.obs_step], self.dtp.tree
+				)
+		return sa_space.T
 
-    def step(self, action):
-        opt_action = traverse_tree(self.state, self.dt)
-        if opt_action == action:
-            reward = 1
-        else:
-            reward = 0
+	def plot_policy(self):
+		sa_space = self.get_opt_state_action_space_from_dtp()
+		self.fig = plt.pcolormesh(
+			np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1),
+			np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1),
+			sa_space,
+			cmap="Blues",
+		)
+		plt.savefig("optim_tree_" + str(self.opt_tree_depth) + ".pdf")
 
-        self.state += self.action_map[action]
-        self.state = np.clip(self.state, 0, 1)
+	def reset(self, seed=None, return_info=False, options=None):
+		self.state = self.observation_space.sample()
+		return self.state
 
-        done = False
+	def step(self, action):
+		opt_action = self.dtp.pol(self.state)
+		if opt_action == action:
+			reward = 1
+		else:
+			reward = 0
 
-        return self.state, reward, done, {}
+		self.state += self.action_map[action]
+		self.state = np.clip(self.state, 0, 1)
 
-    def render_(self):
-        self.plot_partition()
-        plt.scatter(self.state[0], self.state[1], c="red")
-        plt.show(block=False)
-        plt.pause(0.5)
-        plt.close()
+		done = False
+
+		return self.state, reward, done, {}
+
+	def render_(self):
+		self.plot_partition()
+		plt.scatter(self.state[0], self.state[1], c="red")
+		plt.show(block=False)
+		plt.pause(0.5)
+		plt.close()
 
 
 #
