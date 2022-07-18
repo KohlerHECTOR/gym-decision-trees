@@ -128,7 +128,6 @@ class DecisionTreeEnv(gym.Env):
 	:param opt_tree_depth: The max depth of the optimal decision tree policy.
 	:param p: Where to split domains. If p=1, domains are partitioned in their centers.
 	(see: https://arxiv.org/abs/2102.13045 )
-	:param step_size: The size of a step in the state state space.
 	"""
 
 	# to generalize in N dimensions
@@ -136,18 +135,18 @@ class DecisionTreeEnv(gym.Env):
 		self,
 		opt_tree_depth: int = 2,
 		p: int = 1,
-		step_size: float = 1e-2):
+		):
 
 		self.observation_space = gym.spaces.Box(
 			np.array([0, 0]), np.array([1, 1]), dtype=np.float32
 		)
 		self.action_space = gym.spaces.Discrete(4)
-
+		self.step_size = 1/(2**opt_tree_depth)
 		self.action_map = [
-			[0, step_size],
-			[step_size, 0],
-			[-step_size, 0],
-			[0, -step_size],
+			[0, self.step_size],
+			[self.step_size, 0],
+			[-self.step_size, 0],
+			[0, -self.step_size],
 		]
 
 		self.opt_tree_depth = opt_tree_depth

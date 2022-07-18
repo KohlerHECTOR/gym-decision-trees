@@ -24,8 +24,8 @@ import gym_dt
 
 env = gym.make('gym_dt/DecisionTreeEnv-v0',
                 **dict(opt_tree_depth=4,
-                       p=1,
-                       step_size=1e-2)))
+                       p=1
+                       )))
 
 s = env.reset()
 done = False
