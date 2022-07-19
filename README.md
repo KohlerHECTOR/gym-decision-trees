@@ -21,6 +21,7 @@ user@user:~/directory/rl-library$ pip install -e ../gym-decision-trees/
 You can create an instance of the environment as follows:
 ```python
 import gym_dt
+import gym
 
 env = gym.make('gym_dt/DecisionTreeEnv-v0',
                 **dict(opt_tree_depth=4,
