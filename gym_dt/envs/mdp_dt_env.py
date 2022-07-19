@@ -205,7 +205,7 @@ class DecisionTreeEnv(gym.Env):
 		return self.state, reward, done, {}
 
 	def render_(self):
-		self.plot_partition()
+		self.plot_policy()
 		plt.scatter(self.state[0], self.state[1], c="red")
 		plt.show(block=False)
 		plt.pause(0.5)
