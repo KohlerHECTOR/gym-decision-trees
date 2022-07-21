@@ -8,10 +8,10 @@ At first, a decision tree policy of given depth is generated at random. For exam
           /   \        /  \
          up  down     left right
 
-State Space: Continuous 2D plane : (x,y) in [0,1] x [0,1]. <br/>
-Action Space: {up, right, left, down}. <br/>
-Reward: Binary: 1 if the agent follows the optimal decision tree policy. <br/>
-Transition: are vector sums:<br/>
+**State Space**: Continuous 2D plane : (x,y) in [0,1] x [0,1]. <br/>
+**Action Space**: {up, right, left, down}. <br/>
+**Reward**: Binary: 1 if the agent follows the optimal decision tree policy. <br/>
+**Transition**: are vector sums:<br/>
 for example if the action is "up"<br/>
 the deterministic transition is as follows:<br/>
 
