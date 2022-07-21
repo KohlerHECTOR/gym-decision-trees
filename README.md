@@ -1,3 +1,24 @@
+# About the MDP.
+You can see the mdp as a 2d plane where the agent can move in the four cardinal directions by some step size.
+At first, a decision tree policy of given depth is generated at random. For example if the specified depth is 2 we could generate:
+
+            x<=0.5?
+            /       \ 
+          x<=0.25?   y<=0.5?
+          /   \        /  \
+         up  down     left right
+
+State Space: Continuous 2D plane : (x,y) in [0,1] x [0,1].
+Action Space: {up, right, left, down}. 
+Reward: Binary: 1 if the agent follows the optimal decision tree policy
+Transition: are vector sums:
+for example if the action is "up"
+the deterministic transition is as follows:
+
+s_next = s + move <=> (x_next, y_next ) = (x, y) + (0, step_size).
+
+Maximum episode lengh is 500 !
+
 # Install.
 
 For a directory looking like this:
