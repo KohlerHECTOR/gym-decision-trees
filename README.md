@@ -20,6 +20,12 @@ When the agent should be displaced out of bounds, it transitions to its current 
 
 Maximum episode lengh is 500 !<br/>
 
+# Interpreting Results.
+
+Because for every instantiated environment with depth D, there is a different optimal decision tree policy (i.e the reward function changes), an agent performing well in average on different seeded environment, can be seen as an agent that can retrieve decision tree policies of depth D.
+
+**Warning** Because every time an environment is instantiated,there is a different optimal decision tree policy (i.e the reward function changes), training and evaluation should always be done on the same instance of the environment.  
+
 # Install.
 
 For a directory looking like this:
