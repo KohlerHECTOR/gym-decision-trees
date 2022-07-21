@@ -16,6 +16,7 @@ for example if the action is "up"<br/>
 the deterministic transition is as follows:<br/>
 
 s_next = s + move <=> (x_next, y_next ) = (x, y) + (0, step_size).<br/>
+When the agent should be displaced out of bounds, it transitions to its current state (s_next = s). <br/>
 
 Maximum episode lengh is 500 !<br/>
 
