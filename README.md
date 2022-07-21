@@ -1,6 +1,6 @@
 # About the MDP.
 You can see the mdp as a 2d plane where the agent can move in the four cardinal directions by some step size.
-At first, a decision tree policy of given depth is generated at random. For example if the specified depth is 2 we could generate:
+At first, a decision tree policy of given depth is generated at random. For example if the specified depth is 2 the generated ooptimal policy could be:
 
             x<=0.5?
             /       \ 
