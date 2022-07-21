@@ -50,12 +50,13 @@ env = gym.make('gym_dt/DecisionTreeEnv-v0',
                        p=1
                        )))
 
+env.plot_policy() #saves a plot of the optimal policy
 s = env.reset()
 done = False
 while not done:
   s,r,done,info = env.step(env.action_space.sample())
 
-env.plot_policy() #saves a plot of the optimal policy
+
 ```
 
 # TODO
