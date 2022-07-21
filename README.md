@@ -48,7 +48,7 @@ import gym
 env = gym.make('gym_dt/DecisionTreeEnv-v0',
                 **dict(opt_tree_depth=4,
                        p=1
-                       )))
+                       ))
 
 env.plot_policy() #saves a plot of the optimal policy
 s = env.reset()
