@@ -2,7 +2,7 @@ import gym
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Union
-
+from binarytree import Node, tree
 array = Union[list, np.array]
 
 
@@ -11,7 +11,7 @@ def traverse_tree(cell, tree):
 		return tree.action
 	elif isinstance(tree, InfoNode):
 		feature = tree.feature
-		val = tree.value
+		val = tree.split_value
 		if cell[feature] <= val:
 			subtree = tree.left
 
@@ -20,39 +20,28 @@ def traverse_tree(cell, tree):
 		return traverse_tree(cell, subtree)
 
 
-def traverse_tree_build(cell, tree):
-	if isinstance(tree, ActionNode):
-		return tree.action
-	elif isinstance(tree, InfoNode):
-		feature = tree.feature
-		val = tree.value
-		if cell[feature] < val:
-			subtree = tree.left
-
+## Generic Classes for Binary Tree ##
+class InfoNode(Node):
+	def __init__(self, feature, split_value, left, right, lab = None):
+		if lab is None:
+			lab = "feat_" +str(feature)
 		else:
-			subtree = tree.right
-		return traverse_tree_build(cell, subtree)
+			lab = lab[feature]
+		label = lab + "≤" + str(split_value)
+		super().__init__(label, left, right)
+		self.feature = feature
+		self.split_value = split_value
 
 
-
-class ActionNode:
-	"""
-	Generic class for a leaf node of a binary tree.
-	"""
-
-	def __init__(self, action: int):
+class ActionNode(Node):
+	def __init__(self, action, action_label = None):
+		if action_label is not None:
+			label = action_label[action]
+		else :
+			label = "act_" + str(action)
+		super().__init__(label)
 		self.action = action
 
-class InfoNode:
-	"""
-	Generic class for an internal node of binary tree.
-	"""
-
-	def __init__(self, feature: int, value: float, left, right):
-		self.feature = feature
-		self.value = value
-		self.left = left
-		self.right = right
 
 
 class DecisionTreePolicy:
@@ -67,33 +56,29 @@ class DecisionTreePolicy:
 	:param nb_actions: Number of actions possible for decision (leaf) nodes values.
 	"""
 
-	def __init__(self, opt_tree_depth: int, p: int, all_p: array, nb_actions: int):
+	def __init__(self, opt_tree_depth: int, p: int, all_p: array, nb_actions: int, nb_base_features: int):
 
 		self.opt_tree_depth = opt_tree_depth
 		self.p = p
 		self.all_p = all_p
 		self.nb_actions = nb_actions
-
-		self.tree = self.recursive_2D_dt_partition(
-			domains=[[0, 1], [0, 1]],
+		self.nb_base_features = nb_base_features
+		temp  = []
+		for feat in range(self.nb_base_features):
+			temp.append([0,1])
+		self.tree = self.recursive_random_labeled_binary_tree(
+			domains=temp,
 			depth=0,
 		)
 
-	def recursive_2D_dt_partition(
-		self,
-		domains: list,
-		depth: int,
+	def recursive_random_labeled_binary_tree(
+		self, domains, depth
 	):
-		"""
-		Recursively generates a random binary decision tree over a 2d-state-N-action space.
-		:param domains: A closed subspace of |R^2.
-		:param depth: Current number of internal nodes traversed to reach the subspace domains.
-		"""
 		if depth == self.opt_tree_depth:
 			a = np.random.randint(self.nb_actions)
 			return ActionNode(a)
 		else:
-			random_dim = np.random.randint(2)
+			random_dim = np.random.randint(self.nb_base_features)
 			true_vals = (
 				self.all_p * (domains[random_dim][1] - domains[random_dim][0])
 				+ domains[random_dim][0]
@@ -104,10 +89,11 @@ class DecisionTreePolicy:
 			left[random_dim] = [domains[random_dim][0], random_val]
 			right[random_dim] = [random_val, domains[random_dim][1]]
 			depth += 1
-			child_left = self.recursive_2D_dt_partition(
+			# left_right = np.random.randint(2)
+			child_left = self.recursive_random_labeled_binary_tree(
 				left, depth
 			)
-			child_right = self.recursive_2D_dt_partition(
+			child_right = self.recursive_random_labeled_binary_tree(
 				right, depth
 			)
 
@@ -116,10 +102,16 @@ class DecisionTreePolicy:
 	def pol(self, state: array):
 		return traverse_tree(state, self.tree)
 
+	def plot(self):
+		graph = self.tree.graphviz()
+		graph.body
+		graph.render("optimal_policy", format="png")
+
+
 
 class DecisionTreeEnv(gym.Env):
 	"""
-	Simple continuous 2-d states mdp with discrete cardinal actions for which
+	Simple continuous N-d states mdp with discrete cardinal actions for which
 	the optimal policy is a decision tree of given depth.
 
 	In s_t, the reward is 1 for performing the action opt_pol(s_t) and 0 o.w. .
@@ -135,19 +127,22 @@ class DecisionTreeEnv(gym.Env):
 		self,
 		opt_tree_depth: int = 2,
 		p: int = 1,
+		nb_base_features: int = 2
 		):
-
+		self.nb_base_features = nb_base_features
 		self.observation_space = gym.spaces.Box(
 			np.array([0, 0]), np.array([1, 1]), dtype=np.float32
 		)
-		self.action_space = gym.spaces.Discrete(4)
+		self.action_space = gym.spaces.Discrete(2*nb_base_features)
 		self.step_size = 1/(2**opt_tree_depth)
-		self.action_map = [
-			[0, self.step_size],
-			[self.step_size, 0],
-			[-self.step_size, 0],
-			[0, -self.step_size],
-		]
+		self.action_map = []
+		for feat in range(self.nb_base_features):
+			action = np.zeros(self.nb_base_features)
+			action[feat] = self.step_size
+			self.action_map.append(action)
+			action = np.zeros(self.nb_base_features)
+			action[feat] = -self.step_size
+			self.action_map.append(action)
 
 		self.opt_tree_depth = opt_tree_depth
 		self.p = p
@@ -160,31 +155,9 @@ class DecisionTreeEnv(gym.Env):
 
 	def get_random_dtp(self):
 		dtp = DecisionTreePolicy(
-			self.opt_tree_depth, self.p, self.all_p, self.action_space.n
+			self.opt_tree_depth, self.p, self.all_p, self.action_space.n, self.nb_base_features
 		)
 		return dtp
-
-	def get_opt_state_action_space_from_dtp(self):
-		sa_space = np.zeros((
-			len(np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1)[:-1]),
-			len(np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1)[:-1]),
-		))
-		for x in range(len(sa_space)):
-			for y in range(len(sa_space)):
-				sa_space[x][len(sa_space) - 1 - y] = traverse_tree_build(
-					[x * self.obs_step, y * self.obs_step], self.dtp.tree
-				)
-		return sa_space.T
-
-	def plot_policy(self):
-		sa_space = self.get_opt_state_action_space_from_dtp()
-		self.fig = plt.pcolormesh(
-			np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1),
-			np.linspace(0, 1, (self.p + 1) ** (self.opt_tree_depth) + 1),
-			sa_space,
-			cmap="Blues",
-		)
-		plt.savefig("optim_tree_" + str(self.opt_tree_depth) + ".pdf")
 
 	def reset(self, seed=None, return_info=False, options=None):
 		self.state = self.observation_space.sample()
@@ -204,21 +177,15 @@ class DecisionTreeEnv(gym.Env):
 
 		return self.state, reward, done, {}
 
-	def render_(self):
-		self.plot_policy()
-		plt.scatter(self.state[0], self.state[1], c="red")
-		plt.show(block=False)
-		plt.pause(0.5)
-		plt.close()
-
 
 #
 # env.plot_partition()
-#
+# env = DecisionTreeEnv()
+# env.dtp.plot()
 # s = env.reset()
 # done = False
 # while not done:
-#     a = env.action_space.sample()
-#     s, r, done, _ = env.step(a)
-#     # env.render_()
-#     print(r)
+# 	a = env.action_space.sample()
+# 	s, r, done, _ = env.step(a)
+# 	# env.render_()
+# 	print(r)

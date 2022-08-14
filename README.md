@@ -3,7 +3,7 @@ You can see the mdp as a 2d plane where the agent can move in the four cardinal 
 At first, a decision tree policy of given depth is generated at random. For example if the specified depth is 2 the generated ooptimal policy could be:
 
             x<=0.5?
-            /       \ 
+            /       \
           x<=0.25?   y<=0.5?
           /   \        /  \
          up  down     left right
@@ -50,7 +50,7 @@ env = gym.make('gym_dt/DecisionTreeEnv-v0',
                        p=1
                        ))
 
-env.plot_policy() #saves a plot of the optimal policy
+env.dtp.plot() #saves a plot of the optimal policy
 s = env.reset()
 done = False
 while not done:
