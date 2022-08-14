@@ -11,14 +11,21 @@ At first, a decision tree policy of given depth is generated at random. For exam
 **State Space**: Continuous 2D plane : (x,y) in [0,1] x [0,1]. <br/>
 **Action Space**: {up, right, left, down}. <br/>
 **Reward**: Binary: 1 if the agent follows the optimal decision tree policy. <br/>
-**Transition**: are vector sums:<br/>
+**Transitions**: Are vector sums:<br/>
 for example if the action is "up"<br/>
 the deterministic transition is as follows:<br/>
 
-s_next = s + move <=> (x_next, y_next ) = (x, y) + (0, step_size).<br/>
+s_next = s + "up" <=> (x_next, y_next ) = (x, y) + (0, step_size).<br/>
 When the agent should be displaced out of bounds, it transitions to its current state (s_next = s). <br/>
 
 Maximum episode lengh is 500 !<br/>
+Maximum episodic cumulative reward is 500 !<br/>
+
+# Interpreting Results.
+
+Because for every instantiated environment with depth D, there is a different optimal decision tree policy (i.e the reward function changes), an agent obtaining 500 cumulative reward in average on different seeded environment, can be seen as an agent that can retrieve decision tree policies of depth D. 
+
+**Warning** Because every time an environment is instantiated,there is a different optimal decision tree policy (i.e the reward function changes), training and evaluation should always be done on the same instance of the environment.  
 
 # Install.
 
