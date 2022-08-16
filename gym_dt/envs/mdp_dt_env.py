@@ -47,7 +47,7 @@ class ActionNode(Node):
 class DecisionTreePolicy:
 	"""
 	Generic Decision Tree Policy class (binary).
-	Builds a given depth random binary decision tree over a 2d-state-N-action space.
+	Builds a given depth random binary decision tree over a Nd-state-N-action space.
 
 	:param p: Where to split domains. If p=1, domains are partitioned in their centers.
 	(see: https://arxiv.org/abs/2102.13045 )
@@ -114,7 +114,7 @@ class DecisionTreeEnv(gym.Env):
 	Simple continuous N-d states mdp with discrete cardinal actions for which
 	the optimal policy is a decision tree of given depth.
 
-	In s_t, the reward is 1 for performing the action opt_pol(s_t) and 0 o.w. .
+	In s_t, the reward is 1 for performing the action opt_pol(s_t) and -1 o.w. .
 	The maximum steps per episode is 500.
 	The maximum cumulated reward is thus 500.
 	:param opt_tree_depth: The max depth of the optimal decision tree policy.
@@ -168,7 +168,7 @@ class DecisionTreeEnv(gym.Env):
 		if opt_action == action:
 			reward = 1
 		else:
-			reward = 0
+			reward = -1
 
 		self.state += self.action_map[action]
 		self.state = np.clip(self.state, 0, 1)
