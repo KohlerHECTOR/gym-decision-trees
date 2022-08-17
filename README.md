@@ -18,12 +18,12 @@ the deterministic transition is as follows:<br/>
 s_next = s + "up" <=> (x_next, y_next ) = (x, y) + (0, step_size).<br/>
 When the agent should be displaced out of bounds, it transitions to its current state (s_next = s). <br/>
 
-Maximum episode lengh is 500 !<br/>
-Maximum episodic cumulative reward is 500 !<br/>
+Maximum episode lengh is 100 !<br/>
+Maximum episodic cumulative reward is 100 !<br/>
 
 # Interpreting Results.
 
-Because for every instantiated environment with depth D, there is a different optimal decision tree policy (i.e the reward function changes), an agent obtaining 500 cumulative reward in average on different seeded environment, can be seen as an agent that can retrieve decision tree policies of depth D. 
+Because for every instantiated environment with depth D, there is a different optimal decision tree policy (i.e the reward function changes), an agent obtaining 500 cumulative reward in average on different seeded environment, can be seen as an agent that can retrieve decision tree policies of depth D.
 
 **Warning** Because every time an environment is instantiated,there is a different optimal decision tree policy (i.e the reward function changes), training and evaluation should always be done on the same instance of the environment.  
 
@@ -53,7 +53,7 @@ import gym_dt
 import gym
 
 env = gym.make('gym_dt/DecisionTreeEnv-v0',
-                **dict(opt_tree_depth=4,
+                **dict(opt_tree_depth=2,
                        p=1
                        ))
 

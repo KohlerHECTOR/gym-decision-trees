@@ -115,8 +115,8 @@ class DecisionTreeEnv(gym.Env):
 	the optimal policy is a decision tree of given depth.
 
 	In s_t, the reward is 1 for performing the action opt_pol(s_t) and -1 o.w. .
-	The maximum steps per episode is 500.
-	The maximum cumulated reward is thus 500.
+	The maximum steps per episode is 100.
+	The maximum cumulated reward is thus 100.
 	:param opt_tree_depth: The max depth of the optimal decision tree policy.
 	:param p: Where to split domains. If p=1, domains are partitioned in their centers.
 	(see: https://arxiv.org/abs/2102.13045 )
@@ -134,7 +134,10 @@ class DecisionTreeEnv(gym.Env):
 			np.array([0, 0]), np.array([1, 1]), dtype=np.float32
 		)
 		self.action_space = gym.spaces.Discrete(2*nb_base_features)
-		self.step_size = 1/(2**opt_tree_depth)
+		if opt_tree_depth <= 6:
+			self.step_size = 1/100
+		else:
+			self.step_size = 1/(2**opt_tree_depth)
 		self.action_map = []
 		for feat in range(self.nb_base_features):
 			action = np.zeros(self.nb_base_features)
