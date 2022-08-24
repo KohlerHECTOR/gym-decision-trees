@@ -56,7 +56,7 @@ class DecisionTreePolicy:
 	:param nb_actions: Number of actions possible for decision (leaf) nodes values.
 	"""
 
-	def __init__(self, opt_tree_depth: int, p: int, all_p: array, nb_actions: int, nb_base_features: int):
+	def __init__(self, opt_tree_depth: int, p: int, all_p: array, nb_actions: int, nb_base_features: int, seed = None):
 
 		self.opt_tree_depth = opt_tree_depth
 		self.p = p
@@ -66,6 +66,9 @@ class DecisionTreePolicy:
 		temp  = []
 		for feat in range(self.nb_base_features):
 			temp.append([0,1])
+
+		if seed is not None:
+			np.random.seed(seed)
 		self.tree = self.recursive_random_labeled_binary_tree(
 			domains=temp,
 			depth=0,
@@ -102,10 +105,10 @@ class DecisionTreePolicy:
 	def pol(self, state: array):
 		return traverse_tree(state, self.tree)
 
-	def plot(self):
+	def plot(self, filename = "optimal_policy"):
 		graph = self.tree.graphviz()
 		graph.body
-		graph.render("optimal_policy", format="png")
+		graph.render(filename, format="png")
 
 
 
@@ -127,7 +130,8 @@ class DecisionTreeEnv(gym.Env):
 		self,
 		opt_tree_depth: int = 2,
 		p: int = 1,
-		nb_base_features: int = 2
+		nb_base_features: int = 2,
+		seed = None
 		):
 		self.nb_base_features = nb_base_features
 		self.observation_space = gym.spaces.Box(
@@ -152,13 +156,13 @@ class DecisionTreeEnv(gym.Env):
 		self.obs_step = (1 / (self.p + 1)) ** self.opt_tree_depth
 		self.all_p = np.linspace(0, 1, p + 2)[1:-1]
 
-		self.dtp = self.get_random_dtp()
+		self.dtp = self.get_random_dtp(seed)
 
 		self.state = self.observation_space.sample()
 
-	def get_random_dtp(self):
+	def get_random_dtp(self, seed = None):
 		dtp = DecisionTreePolicy(
-			self.opt_tree_depth, self.p, self.all_p, self.action_space.n, self.nb_base_features
+			self.opt_tree_depth, self.p, self.all_p, self.action_space.n, self.nb_base_features, seed
 		)
 		return dtp
 
